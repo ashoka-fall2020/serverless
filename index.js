@@ -32,7 +32,7 @@ exports.handler = function(event, context, callback) {
         Source: "csye6225@dev.aashok.me"
     };
     // Create the promise and SES service object
-    const sendPromise = ses.sendEmail(params).promise();
+    const sendPromise = ses.sendEmail(emailParams).promise();
     sendPromise
         .then(data => {
             console.log(data.MessageId);
