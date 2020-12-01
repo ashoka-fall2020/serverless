@@ -7,6 +7,9 @@ exports.handler = function(event, context, callback) {
     const message = event.Records[0].Sns.Message;
     let messageJson = JSON.parse(message);
     let data = JSON.parse(messageJson.data);
+    let currentTime = new Date().getTime();
+    let ttl = 60 * 60 * 1000;
+    let expirationTime = (currentTime + ttl).toString();
     console.log(message);
     console.log(data);
     console.log(data.Email);
@@ -25,20 +28,57 @@ exports.handler = function(event, context, callback) {
             },
             Subject: {
                 Charset: "UTF-8",
-                Data: "Answer posted for question"
+                Data:data.Subject
             }
         },
-        Source: "csye6225@dev.aashok.me"
+        Source: "webapp@dev.aashok.me"
     };
-    // Create the promise and SES service object
-    const sendPromise = ses.sendEmail(emailParams).promise();
-    sendPromise
-        .then(data => {
-            console.log(data.Message);
-            callback.done(null, "Success");
-        })
-        .catch(err => {
-            console.error(err, err.stack);
-            callback.done(null, "Failed");
-        });
+
+    let ddb = new aws.DynamoDB({apiVersion: '2012-08-10'});
+    let storeData = {
+        TableName: "csye6225",
+        Item: {
+            id: { S: data.Email },
+            data: { S:  message},
+            ttl: { N: expirationTime }
+        }
+    };
+    let getData = {
+        TableName: 'csye6225',
+        Key: {
+            'id': { S: data.Email }
+        },
+    };
+
+    ddb.getItem(getData, function(err, data)
+    {
+        if(err) {
+            console.log(err);
+        }
+        else {
+            console.log(data);
+            let jsonData = JSON.stringify(data);
+            console.log(jsonData);
+            let parsedJson = JSON.parse(jsonData);
+            console.log(parsedJson);
+            if (data.Item == null) {
+                ddb.putItem(storeData, function(err, data) {
+                    if(err) {
+                        console.log(err);
+                    } else{
+                        const sendPromise = ses.sendEmail(emailParams).promise();
+                        sendPromise
+                            .then(data => {
+                                console.log(data.Message);
+                                callback.done(null, "Success");
+                            })
+                            .catch(err => {
+                                console.error(err, err.stack);
+                                callback.done(null, "Failed");
+                            });
+                    }
+                });
+            }
+        }
+    });
 };
