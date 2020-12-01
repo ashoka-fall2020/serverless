@@ -1,0 +1,27 @@
+name: CICD
+
+env:
+  ARTIFACT_NAME: index.zip
+  AWS_REGION: us-east-1
+
+on:
+  push:
+    branches:
+      - a9
+
+jobs:
+  ci_cd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - run: sudo rm -rf node_modules/
+      - name: Zip Artifact
+        run: |
+          zip -r ${{ env.ARTIFACT_NAME }} index.js
+      - name: Update lambdaFunction code
+        run : |
+            aws lambda update-function-code --function-name EmailService --region us-east-1 --zip-file fileb://index.zip
