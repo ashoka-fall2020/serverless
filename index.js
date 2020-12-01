@@ -9,24 +9,23 @@ exports.handler = function(event, context, callback) {
     let data = JSON.parse(messageJson.data);
     console.log(message);
     console.log(data);
-    console.log(data.email);
-    console.log(data.count);
+    console.log(data.Email);
     let emailParams = {
         Destination: {
             ToAddresses: [
-                data.email
+                data.Email
             ]
         },
         Message: {
             Body: {
                 Text: {
                     Charset: "UTF-8",
-                    Data: "Data: "+ data
+                    Data: "Data: "+ data.Message
                 }
             },
             Subject: {
                 Charset: "UTF-8",
-                Data: "Test"
+                Data: "Subject: " + data.Subject
             }
         },
         Source: "csye6225@dev.aashok.me"
@@ -35,7 +34,7 @@ exports.handler = function(event, context, callback) {
     const sendPromise = ses.sendEmail(emailParams).promise();
     sendPromise
         .then(data => {
-            console.log(data.MessageId);
+            console.log(data.Message);
             callback.done(null, "Success");
         })
         .catch(err => {
