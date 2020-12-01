@@ -5,11 +5,7 @@ exports.handler = function(event, context, callback) {
     console.log("AWS lambda and SES");
     console.log(event);
     const message = event.Records[0].Sns.Message;
-    let messageJson = JSON.parse(message);
-    let data = JSON.parse(messageJson.data);
-    let currentTime = new Date().getTime();
-    let ttl = 60 * 60 * 1000;
-    let expirationTime = (currentTime + ttl).toString();
+    let data = JSON.parse(message);
     console.log(message);
     console.log(data);
     console.log(data.Email);
@@ -31,7 +27,7 @@ exports.handler = function(event, context, callback) {
                 Data:data.Subject
             }
         },
-        Source: "webapp@dev.aashok.me"
+        Source: "webapp@" + process.env.DOMAINNAME
     };
 
     let ddb = new aws.DynamoDB({apiVersion: '2012-08-10'});
@@ -39,8 +35,7 @@ exports.handler = function(event, context, callback) {
         TableName: "csye6225",
         Item: {
             id: { S: data.Email },
-            data: { S:  message},
-            ttl: { N: expirationTime }
+            data: { S:  message}
         }
     };
     let getData = {
@@ -59,9 +54,7 @@ exports.handler = function(event, context, callback) {
             console.log(data);
             let jsonData = JSON.stringify(data);
             console.log(jsonData);
-            let parsedJson = JSON.parse(jsonData);
-            console.log(parsedJson);
-            if (data.Item == null) {
+            if (jsonData.Item == null) {
                 ddb.putItem(storeData, function(err, data) {
                     if(err) {
                         console.log(err);
