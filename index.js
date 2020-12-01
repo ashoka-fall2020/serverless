@@ -6,9 +6,12 @@ exports.handler = function(event, context, callback) {
     console.log(event);
     const message = event.Records[0].Sns.Message;
     let data = JSON.parse(message);
-    console.log(message);
-    console.log(data);
-    console.log(data.Email);
+    let currentTime = new Date().getTime();
+    let ttl = 60 * 60 * 1000;
+    let expirationTime = (currentTime + ttl).toString();
+    console.log("Message -------------" +message);
+    console.log("Data -------------" +data);
+    console.log("Email -------------" +data.Email);
     let emailParams = {
         Destination: {
             ToAddresses: [
@@ -27,7 +30,7 @@ exports.handler = function(event, context, callback) {
                 Data:data.Subject
             }
         },
-        Source: "webapp@" + process.env.DOMAINNAME
+        Source: "webapp@"+process.env.DOMAINNAME
     };
 
     let ddb = new aws.DynamoDB({apiVersion: '2012-08-10'});
@@ -35,7 +38,8 @@ exports.handler = function(event, context, callback) {
         TableName: "csye6225",
         Item: {
             id: { S: data.Email },
-            data: { S:  message}
+            data: { S:  message},
+            ttl: { N: expirationTime }
         }
     };
     let getData = {
@@ -51,9 +55,9 @@ exports.handler = function(event, context, callback) {
             console.log(err);
         }
         else {
-            console.log(data);
+            console.log("Get DATA---" + data);
             let jsonData = JSON.stringify(data);
-            console.log(jsonData);
+            console.log("Get JSONDATA---" +jsonData);
             if (jsonData.Item == null) {
                 ddb.putItem(storeData, function(err, data) {
                     if(err) {
@@ -62,7 +66,7 @@ exports.handler = function(event, context, callback) {
                         const sendPromise = ses.sendEmail(emailParams).promise();
                         sendPromise
                             .then(data => {
-                                console.log(data.Message);
+                                console.log("Added to DDB----- " + data.Message);
                                 callback(null, "Success");
                             })
                             .catch(err => {
