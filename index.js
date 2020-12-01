@@ -70,11 +70,11 @@ exports.handler = function(event, context, callback) {
                         sendPromise
                             .then(data => {
                                 console.log(data.Message);
-                                callback.done(null, "Success");
+                                callback(null, "Success");
                             })
                             .catch(err => {
                                 console.error(err, err.stack);
-                                callback.done(null, "Failed");
+                                callback(null, "Failed");
                             });
                     }
                 });
