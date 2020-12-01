@@ -25,7 +25,7 @@ exports.handler = function(event, context, callback) {
             },
             Subject: {
                 Charset: "UTF-8",
-                Data: "Subject: " + data.Subject
+                Data: "Answer posted for question"
             }
         },
         Source: "csye6225@dev.aashok.me"
