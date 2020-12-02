@@ -6,8 +6,15 @@ exports.handler = function(event, context, callback) {
     let data = JSON.parse(message);
     console.log("Message -------------" +message);
     console.log("Data -------------" +data);
-    let dynamodb = new aws.DynamoDB({apiVersion: '2012-08-10'});
+    let ddb = new aws.DynamoDB({apiVersion: '2012-08-10'});
     let id  = "" + data.Email + data.Time;
+    let writeData = {
+        TableName: "csye6225",
+        Item: {
+            id: {S: id},
+            data: { S: message}
+        }
+    };
     let getData = {
         TableName: 'csye6225',
         Key: {
@@ -15,7 +22,7 @@ exports.handler = function(event, context, callback) {
         },
     };
 
-    dynamodb.getItem(getData, function(err, data) {
+    ddb.getItem(getData, function(err, data) {
         if(err) {
             console.log(err);
         }
@@ -26,14 +33,7 @@ exports.handler = function(event, context, callback) {
             let dataItem = JSON.stringify(data.Item);
             console.log("Get dataItem---" +dataItem);
             if (data.Item === null || data.Item === undefined) {
-                let writeData = {
-                    TableName: "csye6225",
-                    Item: {
-                        id: {S: id},
-                        data: { S: message}
-                    }
-                };
-                dynamodb.putItem(writeData, function(err, data) {
+                ddb.putItem(writeData, function(err, data) {
                     if(err) {
                         console.log(err);
                     } else{
