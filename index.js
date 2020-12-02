@@ -38,8 +38,7 @@ exports.handler = function(event, context, callback) {
     let storeData = {
         TableName: "csye6225",
         Item: {
-            id: id,
-            email:{S: data.Email},
+            id: data.Email,
             data: { S:  message},
             ttl: { N: expirationTime }
         }
@@ -47,7 +46,7 @@ exports.handler = function(event, context, callback) {
     let getData = {
         TableName: 'csye6225',
         Key: {
-            'data': { S: message }
+            'id': { S: message }
         },
     };
 
