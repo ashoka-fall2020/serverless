@@ -1,5 +1,4 @@
 const aws = require("aws-sdk");
-const {v4: uuidv4} = require("uuid");
 aws.config.update({ region: "us-east-1" });
 const ses = new aws.SES();
 exports.handler = function(event, context, callback) {
@@ -39,7 +38,7 @@ exports.handler = function(event, context, callback) {
     let storeData = {
         TableName: "csye6225",
         Item: {
-            id: uuidv4(),
+            id: id,
             email:{S: data.Email},
             data: { S:  message},
             ttl: { N: expirationTime }
