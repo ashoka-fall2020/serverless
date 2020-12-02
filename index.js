@@ -38,7 +38,7 @@ exports.handler = function(event, context, callback) {
     let storeData = {
         TableName: "csye6225",
         Item: {
-            id: data.Email,
+            id: {S: data.Email},
             data: { S:  message},
             ttl: { N: expirationTime }
         }
@@ -46,7 +46,7 @@ exports.handler = function(event, context, callback) {
     let getData = {
         TableName: 'csye6225',
         Key: {
-            'id': { S: message }
+            'id': { S: data.Email }
         },
     };
 
@@ -77,7 +77,7 @@ exports.handler = function(event, context, callback) {
                     }
                 });
             } else {
-                console.log("Email found. Donot send again");
+                console.log("Email found.Do not send again");
             }
         }
     });
