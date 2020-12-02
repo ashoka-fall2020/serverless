@@ -29,6 +29,6 @@ jobs:
       - name: Zip Artifact
         run: |
           zip -r ${{ env.ARTIFACT_NAME }} index.js
-      - name: Update lambdaFunction code
+      - name: Upload serverless zip
         run : |
             aws lambda update-function-code --function-name EmailService --region us-east-1 --zip-file fileb://index.zip
