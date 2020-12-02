@@ -2,45 +2,12 @@ const aws = require("aws-sdk");
 aws.config.update({ region: "us-east-1" });
 const ses = new aws.SES();
 exports.handler = function(event, context, callback) {
-    console.log("AWS lambda and SES");
-    console.log(event);
     const message = event.Records[0].Sns.Message;
     let data = JSON.parse(message);
-    let currentTime = new Date().getTime();
-    let ttl = 60 * 60 * 1000;
-    let expirationTime = (currentTime + ttl).toString();
     console.log("Message -------------" +message);
     console.log("Data -------------" +data);
-    let emailParams = {
-        Destination: {
-            ToAddresses: [
-                data.Email
-            ]
-        },
-        Message: {
-            Body: {
-                Text: {
-                    Charset: "UTF-8",
-                    Data: data.Message
-                }
-            },
-            Subject: {
-                Charset: "UTF-8",
-                Data:data.Subject
-            }
-        },
-        Source: "webapp@"+process.env.DOMAINNAME
-    };
-
-    let ddb = new aws.DynamoDB({apiVersion: '2012-08-10'});
+    let dynamodb = new aws.DynamoDB({apiVersion: '2012-08-10'});
     let id  = "" + data.Email + data.Time;
-    let storeData = {
-        TableName: "csye6225",
-        Item: {
-            id: {S: id},
-            data: { S: message}
-        }
-    };
     let getData = {
         TableName: 'csye6225',
         Key: {
@@ -48,8 +15,7 @@ exports.handler = function(event, context, callback) {
         },
     };
 
-    ddb.getItem(getData, function(err, data)
-    {
+    dynamodb.getItem(getData, function(err, data) {
         if(err) {
             console.log(err);
         }
@@ -57,14 +23,40 @@ exports.handler = function(event, context, callback) {
             console.log("Get DATA---" + data);
             let jsonData = JSON.stringify(data);
             console.log("Get JSONDATA---" +jsonData);
-            console.log("Get JSONDATA---" +data.Item);
             let dataItem = JSON.stringify(data.Item);
             console.log("Get dataItem---" +dataItem);
             if (data.Item === null || data.Item === undefined) {
-                ddb.putItem(storeData, function(err, data) {
+                let writeData = {
+                    TableName: "csye6225",
+                    Item: {
+                        id: {S: id},
+                        data: { S: message}
+                    }
+                };
+                dynamodb.putItem(writeData, function(err, data) {
                     if(err) {
                         console.log(err);
                     } else{
+                        let emailParams = {
+                            Destination: {
+                                ToAddresses: [
+                                    data.Email
+                                ]
+                            },
+                            Message: {
+                                Body: {
+                                    Text: {
+                                        Charset: "UTF-8",
+                                        Data: data.Message
+                                    }
+                                },
+                                Subject: {
+                                    Charset: "UTF-8",
+                                    Data:data.Subject
+                                }
+                            },
+                            Source: "webapp@"+process.env.DOMAINNAME
+                        };
                         const sendPromise = ses.sendEmail(emailParams).promise();
                         sendPromise
                             .then(data => {
