@@ -11,7 +11,6 @@ exports.handler = function(event, context, callback) {
     let expirationTime = (currentTime + ttl).toString();
     console.log("Message -------------" +message);
     console.log("Data -------------" +data);
-    console.log("Email -------------" +data.Email);
     let emailParams = {
         Destination: {
             ToAddresses: [
@@ -22,7 +21,7 @@ exports.handler = function(event, context, callback) {
             Body: {
                 Text: {
                     Charset: "UTF-8",
-                    Data: "Data: "+ data.Message
+                    Data: data.Message
                 }
             },
             Subject: {
@@ -34,19 +33,18 @@ exports.handler = function(event, context, callback) {
     };
 
     let ddb = new aws.DynamoDB({apiVersion: '2012-08-10'});
-    let id  = data.Email + currentTime;
+    let id  = "" + data.Email + data.Time;
     let storeData = {
         TableName: "csye6225",
         Item: {
-            id: {S: data.Email},
-            data: { S:  message},
-            ttl: { N: expirationTime }
+            id: {S: id},
+            data: { S: message}
         }
     };
     let getData = {
         TableName: 'csye6225',
         Key: {
-            'id': { S: data.Email }
+            'id': { S: id}
         },
     };
 
@@ -59,7 +57,10 @@ exports.handler = function(event, context, callback) {
             console.log("Get DATA---" + data);
             let jsonData = JSON.stringify(data);
             console.log("Get JSONDATA---" +jsonData);
-            if (jsonData.Item == null) {
+            console.log("Get JSONDATA---" +data.Item);
+            let dataItem = JSON.stringify(data.Item);
+            console.log("Get dataItem---" +dataItem);
+            if (data.Item === null || data.Item === undefined) {
                 ddb.putItem(storeData, function(err, data) {
                     if(err) {
                         console.log(err);
@@ -77,7 +78,7 @@ exports.handler = function(event, context, callback) {
                     }
                 });
             } else {
-                console.log("Email found.Do not send again");
+                console.log("Email found. Do not send again");
             }
         }
     });
