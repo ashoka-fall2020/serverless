@@ -34,10 +34,12 @@ exports.handler = function(event, context, callback) {
     };
 
     let ddb = new aws.DynamoDB({apiVersion: '2012-08-10'});
+    let id  = data.Email + currentTime;
     let storeData = {
         TableName: "csye6225",
         Item: {
-            id: { S: data.Email },
+            id: { S: id},
+            Email:{S: data.Email},
             data: { S:  message},
             ttl: { N: expirationTime }
         }
@@ -45,7 +47,8 @@ exports.handler = function(event, context, callback) {
     let getData = {
         TableName: 'csye6225',
         Key: {
-            'id': { S: data.Email }
+            'id': {S: data.Email},
+            'data': { S: message }
         },
     };
 
@@ -75,6 +78,8 @@ exports.handler = function(event, context, callback) {
                             });
                     }
                 });
+            } else {
+                console.log("Email found. Donot send again");
             }
         }
     });
